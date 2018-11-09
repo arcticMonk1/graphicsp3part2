@@ -11,20 +11,20 @@ class MESH {
     int nc = 0; 
     int[] V = new int [3*maxnt];   
     int[] O = new int [3*maxnt];  
-    HashMap<Integer,ArrayList<Edge>> siteToEdgeMap= new HashMap<Integer,ArrayList<Edge>>(); // site to edges
-    HashMap<Integer, Shape> siteToCellMap= new HashMap<Integer,Shape>(); // site to Cell
-    void initSiteToEdgeMap(int nc) {
+    //HashMap<Integer,ArrayList<Edge>> siteToEdgeMap= new HashMap<Integer,ArrayList<Edge>>(); // site to edges
+    //HashMap<Integer, Shape> siteToCellMap= new HashMap<Integer,Shape>(); // site to Cell
+    /*void initSiteToEdgeMap(int nc) {
       for(int i = 0; i < nc; i++) {
         siteToEdgeMap.put(i, new ArrayList<Edge>());
       }
 
-    }
+    }*/
     // current corner that can be edited with keys
   MESH() {for (int i=0; i<maxnv; i++) G[i]=new pt();};
   void reset() {
     nv=0; nt=0; nc=0; // removes all vertices and triangles
-    siteToEdgeMap= new HashMap<Integer,ArrayList<Edge>>();
-    siteToCellMap= new HashMap<Integer,Shape>();
+    //siteToEdgeMap= new HashMap<Integer,ArrayList<Edge>>();
+    //siteToCellMap= new HashMap<Integer,Shape>();
   }
 
   void loadVertices(pt[] P, int n) {nv=0; for (int i=0; i<n; i++) addVertex(P[i]);}
@@ -92,6 +92,7 @@ class MESH {
            }
            boolean good = true;
            cen = util.circumcenter(G[i],G[j],G[k]);
+           //cen = CircumCenter(G[i],G[j],G[k]);
            for (int m=0; m<nv; m++) {
              if(m == i || m == j || m == k) {
                continue;
@@ -105,9 +106,9 @@ class MESH {
              //println("{i: "+i +" j: "+j + " k: " + k + "} ");
              if(ccw(G[i],G[j],G[k])) {
                addTriangle(i,j,k);
-             } else {
+             } /*else {
                addTriangle(k,j,i);
-             }
+             }*/
            }
          }
        }
@@ -182,8 +183,8 @@ class MESH {
   int v (int c) {return V[c];}                                // vertex of c
   int o (int c) {return O[c];}                                // opposite corner
   int l (int c) {return o(n(c));}                             // left
-  int s (int c) {return 0;}                                   // left
-  int u (int c) {return 0;}                                   // left
+  int s (int c) {return n(l(c));}                                   // left
+  int u (int c) {return p(r(c));}                                   // left
   int r (int c) {return o(p(c));}                             // right
 
 void showVoronoiEdges() // draws Voronoi edges on the boundary of Voroni cells of interior vertices
@@ -210,7 +211,7 @@ void showVoronoiEdges() // draws Voronoi edges on the boundary of Voroni cells o
     }
   }
   //constructShape();
-  drawInHatPerShape();
+  //drawInHatPerShape();
 }
 /*
 void constructShape() {
@@ -231,19 +232,41 @@ void constructShape() {
   }
 }*/
 
-void drawInHatPerShape() {
+/*void drawInHatPerShape() {
   for (HashMap.Entry<Integer,Shape> entry : siteToCellMap.entrySet()) {
     Shape shape = entry.getValue();
     shape.drawInhat();
     //println("shape[ " + i + " ] = " + shape.size());
     //shape.printPts();
   }
-}
+}*/
 
   void showArcs() // draws arcs of quadratic B-spline of Voronoi boundary loops of interior vertices
     { 
-    // **06 implement it
-    }               // draws arcs in triangles
+      println(nc);
+      for (int c=0; c<50; c++) {
+        if(O[c] != -1 && c < o(c)) {
+          int prev = u(c);
+          int root = s(prev);
+          int curr = root;
+          do {
+            //println("curr is: " + curr);
+            int nx = s(curr);
+            pt aCenter = util.circumcenter(g(prev),g(n(prev)),g(p(prev)));
+            pt bCenter = util.circumcenter(g(curr),g(n(curr)),g(p(curr)));
+            pt cCenter = util.circumcenter(g(nx),g(n(nx)),g(p(nx)));
+            pt abm = util.midpoint(aCenter, bCenter);
+            pt bcm = util.midpoint(bCenter, cCenter);
+            pt bz1 = Bezier(abm, bCenter, bcm, 0);
+            pt bz2 = Bezier(abm, bCenter, bcm, 0.5);
+            pt bz3 = Bezier(abm, bCenter, bcm,1.0);
+            drawParabolaInHat(bz1,bz2, bz3, 1);
+            prev = curr;
+            curr = nx;
+          } while(curr != root && curr != c);
+        }
+      }
+    }
 
  
   pt triCenter(int c) {return P(g(c),g(n(c)),g(p(c))); }  // returns center of mass of triangle of corner c
