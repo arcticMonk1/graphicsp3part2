@@ -29,10 +29,17 @@ void keyPressed()
     if(key=='=') S.copyFrom(R);
 
     if(key=='a') {animating=!animating;}
-    if(key=='b') {for(int i=0; i<10; i++) M.smoothenInterior(); M.writeVerticesTo(R);}
+    if(key=='b') {for(int i=0; i<100; i++) M.smoothenInterior(); M.writeVerticesTo(R);}
     if(key=='c') ; 
     if(key=='d') {R.set_pv_to_pp(); R.deletePicked();}  
-    if(key=='e') ;
+    if(key=='e') {
+      if(SMOOTHTYPE == 2) {
+        SMOOTHTYPE = 0;
+      } else {
+        SMOOTHTYPE++;
+      }
+      smoothName = smoothNames[SMOOTHTYPE];
+    }
     if(key=='f') ; // hold to move focus with mouse pressed
     if(key=='g') P.loadPts("data/pts"); 
     if(key=='h') ; // hold do change column height with mouse

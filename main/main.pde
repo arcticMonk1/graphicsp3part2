@@ -29,7 +29,12 @@ Boolean
  
   scribeText=false; // toggle for displaying of help text
   Util util = new Util();
-
+  final int CENTROID = 0;
+  final int AVGNEIGH = 1;
+  final int AVGNEIGHCENTROIDS = 2;
+  int SMOOTHTYPE = AVGNEIGHCENTROIDS;
+  String[] smoothNames = {"CENTROID","AVGNEIGH","AVGNEIGHCENTROIDS"};
+  String smoothName = smoothNames[SMOOTHTYPE];
 
 float 
   da = TWO_PI/32, // facet count for fans, cones, caplets
@@ -139,8 +144,10 @@ void draw() {
     
   if(step4)
     {
-    for(int i=0; i<10; i++) M.smoothenInterior(); // **04 implement it in Mesh
-    M.writeVerticesTo(R);  
+    for(int i=0; i<1; i++) {
+      M.smoothenInterior(); // **04 implement it in Mesh
+    }
+    M.writeVerticesTo(R);
     }
     
  // **05 implement corner operators in Mesh
@@ -149,12 +156,22 @@ void draw() {
     live=false;
     fill(magenta); 
     if(showCorner) M.showCurrentCorner(20); 
+    if(showOpposite) {
+      pushMatrix();
+      translate(0,0,10);
+      stroke(blue); 
+      M.showOpposites();
+      popMatrix();
+    }
     }
     
   if(step6)
     {
     pushMatrix(); 
     translate(0,0,6); noFill(); 
+    if(showVoronoiFaces) {
+      M.drawVoronoiFaceOfInteriorVertex();
+    }
     stroke(blue); 
     if(showVoronoi) M.showVoronoiEdges(); // **06 implement it in Mesh
     stroke(red); 
@@ -196,6 +213,9 @@ void draw() {
   int line=0;
   scribeHeader(" Project 3 for Rossignac's 2018 Graphics Course CS3451 / CS6491 by Farzon Lotfi",line++);
   scribeHeader(P.count()+" vertices, "+M.nt+" triangles ",line++);
+  if(step4) {
+    scribeHeader("Smoothing algorithm: "+smoothName,line++);
+  }
   if(live) scribeHeader("LIVE",line++);
  
   // used for demos to show red circle when mouse/key is pressed and what key (disk may be hidden by the 3D model)

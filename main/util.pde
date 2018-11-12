@@ -19,6 +19,10 @@ class Util {
         return mAB.addAlloc(scale, perp);
   }
 
+  pt triCentroid(pt A, pt B, pt C) {
+        return new pt((A.x+B.x+C.x)/3.,(A.y+B.y+C.y)/3.,0);
+  }
+ 
   pt midpoint(pt A, pt B) {
         vec AB = new vec(A, B);
         float normAB = AB.norm()/2;
@@ -34,5 +38,16 @@ class Util {
       float dxsq = sq(p2.x-p1.x);
       float dysq = sq(p2.y-p1.y);
       return sqrt(dxsq + dysq);
+  }
+
+  void drawCurve(pt a, pt b, pt c, int resolution) {
+      pt bzOld = null;
+      for(float i = 0.0; i< resolution; i++) {
+            pt bz = Bezier(a, b, c, i/resolution);
+            if(bzOld != null) {
+                  show(bzOld,bz);
+            }
+            bzOld = bz;
+      }
   }
 }
