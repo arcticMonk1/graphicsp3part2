@@ -35,8 +35,8 @@ class MESH {
   int p (int c) {int r=3*int(c/3)+(c+2)%3; return(r);}         // previous corner
   pt g (int c) {return G[V[c]];}                             // shortcut to get the point where the vertex v(c) of corner c is located
 
-  boolean nb(int c) {return(O[c]!=-1);};  // not a border corner
-  boolean bord(int c) {return(O[c]==-1);};  // not a border corner
+  boolean nb(int c) {return(O[c]!=c);};  // not a border corner
+  boolean bord(int c) {return(O[c]==c);};  // not a border corner
 
   pt cg(int c) {return P(0.6,g(c),0.2,g(p(c)),0.2,g(n(c)));}   // computes offset location of point at corner c
 
@@ -113,7 +113,7 @@ class MESH {
     {
       int ntTriBound = nt*3;
       for (int c=0; c<ntTriBound; c++) {
-        O[c]=-1;
+        O[c]=c;
       }
       for (int c=0; c<ntTriBound; c++) {
         for (int b=0; b<ntTriBound; b++) {
@@ -134,7 +134,7 @@ class MESH {
   void showBorderEdges()  // draws all border edges of mesh
     {
       for (int i=0; i<nc; i++) {
-        if(O[i] == -1){
+        if(O[i] == i){
           showEdge(i);
         }
       }
@@ -143,7 +143,7 @@ class MESH {
   void showNonBorderEdges() // draws all non-border edges of mesh
     {
       for (int i=0; i<nc; i++) {
-        if(O[i] != -1){
+        if(O[i] != i){
           showEdge(i);
         }
       }
@@ -155,7 +155,7 @@ class MESH {
       }
 
       for(int c = 0; c < nc; c++) {
-        if(O[c] == -1){
+        if(O[c] == c){
           isInterior[V[n(c)]] = false;
           isInterior[V[p(c)]] = false;
         }
@@ -280,7 +280,7 @@ void showOpposites() {
    HashMap<Integer,Edge> edges = new HashMap<Integer,Edge>();
    for (int c=0; c<nc; c++) {
      int opp = O[c];
-     if(opp != -1) {
+     if(opp != c) {
        pt a = g(c);
        pt oppPt = g(opp);
        Edge e = new Edge(a,oppPt);
@@ -294,10 +294,7 @@ void showOpposites() {
        //edges.add(e);
        //show(a, oppPt);
        pt cent = util.circumcenter(a, g(n(c)), oppPt);
-       //pt bz1 = Bezier(a, cent, oppPt, 0);
-       //pt bz2 = Bezier(a, cent, oppPt, 0.5);
-       //pt bz3 = Bezier(a, cent, oppPt,1.0);
-       drawParabolaInHat(a, cent, oppPt, 4);
+       drawParabolaInHat(a, cent, oppPt, 6);
      }
    }
    //println(edges.size());
@@ -307,7 +304,7 @@ void showOpposites() {
 void showVoronoiEdges() // draws Voronoi edges on the boundary of Voroni cells of interior vertices
 {
   for (int c=0; c<nc; c++) {
-    if(O[c] != -1 && c < o(c)) {
+    if(O[c] != c && c < o(c)) {
       //note didn't know there was a CircumCenter function wrote my own.
       pt cornerCcenter = util.circumcenter(g(c),g(n(c)),g(p(c)));
       int b = o(c);
@@ -321,7 +318,7 @@ void showArcs() // draws arcs of quadratic B-spline of Voronoi boundary loops of
     { 
       for (int c=0; c<nc; c++) {
         if(isInterior[V[c]]) {
-        //if(O[c] != -1 && c < o(c)) {
+        //if(O[c] != c && c < o(c)) {
           int prev = u(c);
           int root = s(prev);
           int curr = root;
@@ -333,10 +330,7 @@ void showArcs() // draws arcs of quadratic B-spline of Voronoi boundary loops of
             pt cCenter = util.circumcenter(g(nx),g(n(nx)),g(p(nx)));
             pt abm = util.midpoint(aCenter, bCenter);
             pt bcm = util.midpoint(bCenter, cCenter);
-            //pt bz1 = Bezier(abm, bCenter, bcm, 0);
-            //pt bz2 = Bezier(abm, bCenter, bcm, 0.5);
-            //pt bz3 = Bezier(abm, bCenter, bcm,1.0);
-            drawParabolaInHat(abm, bCenter, bcm, 4);
+            drawParabolaInHat(abm, bCenter, bcm, 6);
             prev = curr;
             curr = nx;
           } while(curr != root && curr != c);
