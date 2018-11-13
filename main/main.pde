@@ -32,8 +32,9 @@ Boolean
   final int CENTROID = 0;
   final int AVGNEIGH = 1;
   final int AVGNEIGHCENTROIDS = 2;
-  int SMOOTHTYPE = AVGNEIGHCENTROIDS;
-  String[] smoothNames = {"CENTROID","AVGNEIGH","AVGNEIGHCENTROIDS"};
+  final int AVGWEIGHTED = 3;
+  int SMOOTHTYPE = AVGWEIGHTED;
+  String[] smoothNames = {"CENTROID","AVGNEIGH","AVGNEIGHCENTROIDS", "AVGWEIGHTED"};
   String smoothName = smoothNames[SMOOTHTYPE];
 
 float 
@@ -76,6 +77,8 @@ void setup() {
   sphereDetail(12);
   R=P; S=Q;
   println(); println("_______ _______ _______ _______");
+  //println("triangle area: " + util.triangleArea(new pt(0,0),new pt(1,1),new pt(0,2)));
+  //println("triangle area: " + util.triangleArea(new pt(0,0),new pt(5,4),new pt(8,2)));
   }
 
 void draw() {

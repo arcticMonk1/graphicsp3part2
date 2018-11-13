@@ -50,4 +50,17 @@ class Util {
             bzOld = bz;
       }
   }
+  float dt(pt a, pt b, pt c) {
+        return a.x *(b.y-c.y);
+  }
+  float triangleArea(pt a, pt b, pt c) {
+        return abs(.5 * (dt(a,b,c) + dt(b,c,a) + dt(c,a,b)));
+  }
+  pt average(pt[] p) {
+        pt sumPt = new pt(0,0);
+        for(int i = 0; i < p.length; i++) {
+              sumPt.add(p[i]);
+        }
+        return sumPt.div(p.length);
+  }
 }

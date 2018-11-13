@@ -162,8 +162,28 @@ class MESH {
       }
 }
 
+pt weightedSmooth(int c) {
+    pt avgSum = new pt(0,0);
+    int root = s(u(c));
+    int curr = root; 
+    float distSum = 0;
+    do {
+      float distance = util.distance2d(g(n(c)),g(p(c)));
+      pt avgPt = util.average(new pt[]{ g(n(c)),g(p(c)) });
+      avgPt.mul(distance);
+      avgSum.add(avgPt);
+      distSum += distance;
+      curr = s(curr);
+    }
+    while(curr != root);
+    return avgSum.div(distSum);
+}
+
   void smoothenInterior() { // even interior vertiex locations
     pt[] Gn = new pt[nv];
+    if(SMOOTHTYPE == AVGWEIGHTED) {
+
+    }
     for (int c=0; c<nc; c++) {
       int v = V[c];
       if(isInterior[v]) {
@@ -177,6 +197,12 @@ class MESH {
           case AVGNEIGHCENTROIDS:
             Gn[v] = avgerageNeighborCentroids(c);
             break;
+          case AVGWEIGHTED:
+            Gn[v] = weightedSmooth(c);
+            break;
+          //case AVGWEIGHTEDTRIAREA:
+            //Gn[v] = averageWeightByTriArea(c);
+           // break;
         }
         G[v].translateTowards(.1,Gn[v]);
       }
@@ -189,24 +215,54 @@ class MESH {
     int curr = root; 
     int ngCount = 0;
     do {
-      avgPt.add(G[V[n(c)]]);
+      avgPt.add(G[V[n(curr)]]);
       ngCount++;
       curr = s(curr);
     }while(curr != root);
+    if(ngCount == 0) {
+      ngCount = 1;
+    }
     return avgPt.div(ngCount);
   }
+/*
+  pt averageWeightByTriArea(int c) {
+    pt avgPt = new pt(0,0);
+    int root = s(u(c));
+    int curr = root;
+    float totalArea =  0;
+    do {
+      pt o = G[V[curr]];
+      pt pi = G[V[n(curr)]];
+      pt piplus1 = G[V[p(curr)]];
+      pt piminus1 = G[V[n(u(curr))]];
+      double currArea = area(o,pi,piplus1);
+      double prevArea = area(o,pi,piminus1);
+      float sumArea = (float)(currArea+prevArea)/2.0f;
+      avgPt.add(pi.mul(sumArea));
+      totalArea += sumArea;
+      curr = s(curr);
+    }while(curr != root);
+    if(totalArea == 0) {
+      totalArea = 1;
+    }
+    println("total Area: " + totalArea);
+    return avgPt.div(totalArea);
+  }*/
 
-    pt avgerageNeighborCentroids(int c) {
+  pt avgerageNeighborCentroids(int c) {
     pt avgCentroids = new pt(0,0);
     int root = s(u(c));
     int curr = root; 
     int ngCount = 0;
     do {
-      pt cent =util.triCentroid(G[V[n(c)]],G[V[c]], G[V[p(c)]]);
+      pt cent =util.triCentroid(G[V[n(curr)]],G[V[curr]], G[V[p(curr)]]);
       avgCentroids.add(cent);
       ngCount++;
       curr = s(curr);
     }while(curr != root);
+    if(ngCount == 0) {
+      ngCount = 1;
+    }
     return avgCentroids.div(ngCount);
   }
 
@@ -238,10 +294,10 @@ void showOpposites() {
        //edges.add(e);
        //show(a, oppPt);
        pt cent = util.circumcenter(a, g(n(c)), oppPt);
-       pt bz1 = Bezier(a, cent, oppPt, 0);
-       pt bz2 = Bezier(a, cent, oppPt, 0.5);
-       pt bz3 = Bezier(a, cent, oppPt,1.0);
-       drawParabolaInHat(bz1, bz2, bz3, 2);
+       //pt bz1 = Bezier(a, cent, oppPt, 0);
+       //pt bz2 = Bezier(a, cent, oppPt, 0.5);
+       //pt bz3 = Bezier(a, cent, oppPt,1.0);
+       drawParabolaInHat(a, cent, oppPt, 4);
      }
    }
    //println(edges.size());
@@ -277,10 +333,10 @@ void showArcs() // draws arcs of quadratic B-spline of Voronoi boundary loops of
             pt cCenter = util.circumcenter(g(nx),g(n(nx)),g(p(nx)));
             pt abm = util.midpoint(aCenter, bCenter);
             pt bcm = util.midpoint(bCenter, cCenter);
-            pt bz1 = Bezier(abm, bCenter, bcm, 0);
-            pt bz2 = Bezier(abm, bCenter, bcm, 0.5);
-            pt bz3 = Bezier(abm, bCenter, bcm,1.0);
-            drawParabolaInHat(bz1,bz2, bz3, 1);
+            //pt bz1 = Bezier(abm, bCenter, bcm, 0);
+            //pt bz2 = Bezier(abm, bCenter, bcm, 0.5);
+            //pt bz3 = Bezier(abm, bCenter, bcm,1.0);
+            drawParabolaInHat(abm, bCenter, bcm, 4);
             prev = curr;
             curr = nx;
           } while(curr != root && curr != c);

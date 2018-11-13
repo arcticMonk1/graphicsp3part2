@@ -33,7 +33,7 @@ void keyPressed()
     if(key=='c') ; 
     if(key=='d') {R.set_pv_to_pp(); R.deletePicked();}  
     if(key=='e') {
-      if(SMOOTHTYPE == 2) {
+      if(SMOOTHTYPE == 3) {
         SMOOTHTYPE = 0;
       } else {
         SMOOTHTYPE++;

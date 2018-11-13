@@ -28,6 +28,9 @@ class vec
    vec sub(vec V) {x-=V.x; y-=V.y; z-=V.z; return this;};
    vec subAlloc(vec V) { return V(x-V.x, y-V.y, z-V.z);};
    vec mul(float f) {x*=f; y*=f; z*=f; return this;};
+   vec mulAlloc(float f) {
+     return V(x*f, y*f, z*f); 
+   }
    vec div(float f) {x/=f; y/=f; z/=f; return this;};
    vec div(int f) {x/=f; y/=f; z/=f; return this;};
    vec rev() {x=-x; y=-y; z=-z; return this;}; 
@@ -65,6 +68,9 @@ class pt
    pt add(float s, vec V) {x+=s*V.x; y+=s*V.y; z+=s*V.z; return this;};
    pt sub(pt P) {x-=P.x; y-=P.y; z-=P.z; return this;};
    pt mul(float f) {x*=f; y*=f; z*=f; return this;};
+   pt mulAlloc(float f) {
+     return P(x*f, y*f, z*f); 
+   }
    pt div(float f) {x/=f; y/=f; z/=f; return this;};
    pt div(int f) {x/=f; y/=f; z/=f; return this;};
    pt translateTowards(float s, pt P) {x+=s*(P.x-x);  y+=s*(P.y-y); z+=s*(P.z-z);  return this;};  // transalte by ratio s towards P
