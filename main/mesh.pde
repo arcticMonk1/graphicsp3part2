@@ -168,8 +168,8 @@ pt weightedSmooth(int c) {
     int curr = root; 
     float distSum = 0;
     do {
-      float distance = util.distance2d(g(n(c)),g(p(c)));
-      pt avgPt = util.average(new pt[]{ g(n(c)),g(p(c)) });
+      float distance = util.distance2d(g(n(curr)),g(p(curr)));
+      pt avgPt = util.average(new pt[]{ g(n(curr)),g(p(curr)) });
       avgPt.mul(distance);
       avgSum.add(avgPt);
       distSum += distance;
