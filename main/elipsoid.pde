@@ -7,6 +7,8 @@ class Ellipsoid {
     float r;
     int resolution;
     color cl;
+    int currentCorner;
+    int cornerCount =0;
     Ellipsoid(pt center, float r, color cl, int resolution) {
         this(center,r,r,r,cl, resolution);
         this.r = r;
@@ -22,14 +24,38 @@ class Ellipsoid {
         this.cl = cl;
         this.resolution = resolution;
     }
+    void shrinkTo(float shrinkXY) {
+        float newRadius = shrinkXY/2.0f;
+        a = newRadius;
+        b = newRadius;
+        c = pow(r,3)/(a*b);
+    }
+
     boolean isSphere() {
         return a == b && b == c;
+    }
+
+    float getVolume() {
+        return 4.0f/3.0f * PI * (a * b * c);
     }
 
     boolean wasSphere() {
         return r != 0 && (r != a  || r != b || r != c);
     }
+    
+    void restoreSphere() {
+        a = r;
+        b = r;
+        c = r;
+    }
 
+    boolean intersect(pt other,float otherRadius) {
+        float distance = sqrt((this.center.x - other.x) * (this.center.x - other.x) +
+                           (this.center.y - other.y) * (this.center.y - other.y) +
+                           (this.center.z - other.z) * (this.center.z - other.z));
+
+        return distance < (this.r + otherRadius);
+    }
 
     pt[][] updateMesh() {
         pt[][] v = new pt[resolution+1][resolution+1];

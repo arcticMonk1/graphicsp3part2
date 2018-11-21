@@ -37,7 +37,8 @@ class MESH {
 
   boolean nb(int c) {return(O[c]!=c);};  // not a border corner
   boolean bord(int c) {return(O[c]==c);};  // not a border corner
-
+  boolean genPillars = true;
+  float[] pillarRadius;
   pt cg(int c) {return P(0.6,g(c),0.2,g(p(c)),0.2,g(n(c)));}   // computes offset location of point at corner c
 
   // CORNER ACTIONS CURRENT CORNER c
@@ -311,6 +312,22 @@ void showVoronoiEdges() // draws Voronoi edges on the boundary of Voroni cells o
       pt cornerBcenter = util.circumcenter(g(b),g(n(b)),g(p(b)));
       show(cornerCcenter, cornerBcenter);
     }
+  }
+}
+
+void showPillars() {
+  if(genPillars) {
+    pillarRadius = new float[nv];
+    for( int v = 0; v < nv; v++) {
+      pillarRadius[v] = 110+random(70);
+    }
+    genPillars = false;
+  }
+   for (int v=0; v<nv; v++) {
+     if(isInterior[v]) {
+        fill(magenta,150);
+        pillar(G[v],90,pillarRadius[v]);
+      }
   }
 }
 

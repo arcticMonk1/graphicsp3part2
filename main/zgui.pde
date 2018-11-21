@@ -60,7 +60,7 @@ void keyPressed()
     if(key=='w') P.savePts("data/pts");   // save vertices to pts 
     if(key=='x') ; // hold to move selected vertex with mouse
     if(key=='y') ;
-    if(key=='z') ; 
+    if(key=='z') {M.genPillars= true;}
 
     if(key=='A') showArcs=!showArcs;
     if(key=='B') showBalls=!showBalls ;  
