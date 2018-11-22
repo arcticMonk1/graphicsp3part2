@@ -207,6 +207,7 @@ void draw() {
       M.showPillars();
       cat.generatePathFromCorner();
       cat.draw();
+      cat.checkVolume();
       if(catShouldTranslateOnPath) {
         cat.translateOnPath();
         printOnce = true;
@@ -240,6 +241,21 @@ void draw() {
     
   if(step8)
     {
+      float oldVolume = (4.0f/3.0f)*PI*pow(4,3);
+      float newVolume = (4.0f/3.0f)*PI*(2*2*4);
+      float volumeDelta = abs(oldVolume - newVolume);
+      float nextVolume = oldVolume + volumeDelta;
+      float nextRadius = pow((3.0f*nextVolume)/(4.0f*PI),1.0/3.0);
+      float testVolume = (4.0f/3.0f)*PI*pow(nextRadius,3);
+      println("oldVolume: "+oldVolume);
+      println("newVolume: "+newVolume);
+      println("volumeDelta: "+volumeDelta);
+      println("nextVolume: "+nextVolume);
+      println("nextRadius: "+nextRadius);
+      println("testVolume: "+testVolume);
+      println("2*oldVolume ==newVolume+nextVolume: "+ ((2*oldVolume) == (newVolume+nextVolume)));
+      println("testVolume ==nextVolume: "+(abs(testVolume -nextVolume) < 1.0));
+      step8 = false;
     }
     
   if(step9)

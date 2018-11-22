@@ -36,7 +36,7 @@ class Ellipsoid {
     }
 
     float getVolume() {
-        return 4.0f/3.0f * PI * (a * b * c);
+        return (4.0f/3.0f) * PI * (a * b * c);
     }
 
     boolean wasSphere() {
