@@ -39,6 +39,7 @@ Boolean
 
   float totalAnimationTime=9; // at 1 sec for 30 frames, this makes the total animation last 90 frames
   float time=0;
+  boolean printOnce = false;
 
 float 
   da = TWO_PI/32, // facet count for fans, cones, caplets
@@ -60,6 +61,7 @@ int
   tetCount=0;
  
  Caterpillar cat;
+ boolean catShouldTranslateOnPath = true;
 
 pts P = new pts(); // polyloop in 3D
 pts Q = new pts(); // second polyloop in 3D
@@ -199,12 +201,40 @@ void draw() {
 
   if(step7)
     {
+      showEdges = false;
       pushMatrix(); 
       translate(0,0,6); noFill(); 
       M.showPillars();
       cat.generatePathFromCorner();
       cat.draw();
-      cat.translateOnPath();
+      if(catShouldTranslateOnPath) {
+        cat.translateOnPath();
+        printOnce = true;
+      } else {
+        if(printOnce) {
+          for(int i = 0; i < cat.elipsoids.length; i++) {
+            println("index["+ i +"]: " + util.PointStringify(cat.elipsoids[i].center));
+            println("index["+ i +"].a: " + cat.elipsoids[i].a);
+            println("index["+ i +"].b: " + cat.elipsoids[i].b);
+            println("index["+ i +"].c: " + cat.elipsoids[i].c);
+            println("index["+ i +"].currentCorner: " + cat.elipsoids[i].currentCorner);
+            pt prevPt = M.g(M.p(cat.elipsoids[i].currentCorner));
+            pt currPt = M.g(cat.elipsoids[i].currentCorner);
+            float prevPillarRadius = M.pillarRadius[M.v(M.p(cat.elipsoids[i].currentCorner))];
+            float currentPillarRadius = M.pillarRadius[M.v(cat.elipsoids[i].currentCorner)];
+            float distance = util.distance2d(currPt,prevPt);
+            float shrinkTo = distance - (prevPillarRadius+ currentPillarRadius);
+            float newRadius = shrinkTo/2.0f;
+            float oldVolume = cat.elipsoids[i].getVolume();
+            println("index["+ i +"] distance: " + distance);
+            println("index["+ i +"] shrinkTo: " + shrinkTo);
+            println("index["+ i +"] newRadius: " + newRadius);
+            println("index["+ i +"] oldVolume: " + oldVolume);
+
+          }
+          printOnce = false;
+        }
+      }
       popMatrix();
     }
     

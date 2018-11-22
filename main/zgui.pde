@@ -56,10 +56,14 @@ void keyPressed()
     if(key=='s') M.swing();
     if(key=='t') ; 
     if(key=='u') M.unswing();
-    if(key=='v') ; 
+    if(key=='v') {
+      cat.shouldDisplaceVertically = !cat.shouldDisplaceVertically;
+    }
     if(key=='w') P.savePts("data/pts");   // save vertices to pts 
     if(key=='x') ; // hold to move selected vertex with mouse
-    if(key=='y') ;
+    if(key=='y')  {
+      catShouldTranslateOnPath = !catShouldTranslateOnPath;
+    }
     if(key=='z') {M.genPillars= true;}
 
     if(key=='A') showArcs=!showArcs;

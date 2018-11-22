@@ -1,19 +1,21 @@
 class Caterpillar {
     int pathResolution;
     Ellipsoid[] elipsoids;
-    //boolean[] intersections;
+    boolean[] intersectionsPrev;
+    boolean[] intersectionsNext;
     int displaceOver = 0;
     int rootPtIndices[];
     int currPtIndex = 0;
-    int cornerCount = 0;
+    float currentRadius = 35.0f;
+    float currPillarRadius;
     pt[] currentPath;
-    boolean shouldDisplaceVertically = false;
-    boolean resize = true;
+    boolean shouldDisplaceVertically = true;
     boolean pathGen = false;
     ArrayList<pt> midpoints;
     Caterpillar(int length, int pathResolution) {
         elipsoids = new Ellipsoid[length];
-        //intersections = new boolean[length];
+        intersectionsPrev = new boolean[length];
+        intersectionsNext = new boolean[length];
         rootPtIndices = new int[length];
         this.pathResolution = pathResolution;
         pathResolution = length;
@@ -24,6 +26,9 @@ class Caterpillar {
         generatePathFromCorner(0);
     }
     void generatePathFromCorner(int c) {
+        if( M.pillarRadius[M.v(c)] != currPillarRadius) {
+            M.pillarRadius[M.v(c)] = currPillarRadius;
+        }
         if(pathGen) {
             return;
         }
@@ -52,6 +57,8 @@ class Caterpillar {
             elipsoids[i].currentCorner =c;
         }
         pathGen = true;
+        currPillarRadius = util.distance2d(M.g(c),util.midpoint(M.g(c),M.g(M.p(c)))) - (currentRadius+1);
+        M.pillarRadius[M.v(c)] = currPillarRadius;
     }
     void generatePath(pt A, pt B, pt C, boolean intitStart) {
         ArrayList<pt> pts = new ArrayList<pt>(pathResolution);
@@ -60,8 +67,13 @@ class Caterpillar {
             currentPath = pts.toArray(new pt[0]);
             int j = 0;
             for(int i = elipsoids.length-1; i >= 0; i--, j++) {
-                int jMap = (int) map(j, 0, elipsoids.length, 0, currentPath.length *(3/4.0));
-                elipsoids[i] = new Ellipsoid(currentPath[jMap],40.0f,blue,16);
+                int jMap = (int) map(j, 0, elipsoids.length, 0, currentPath.length);
+                /*if(j == 0) {
+                    int jMap2 = (int) map(j+1, 0, elipsoids.length, 0, currentPath.length *(3/4.0));
+                    currentRadius = 4.0f*(jMap - jMap2);
+                    println("cat radius:" + currentRadius);
+                }*/
+                elipsoids[i] = new Ellipsoid(currentPath[jMap],currentRadius,blue,16);
                 rootPtIndices[i] = jMap;
             }
             currPtIndex = rootPtIndices[0];
@@ -93,43 +105,74 @@ class Caterpillar {
         }
     }
 
-    /*void saveAllIntersection() {
+    void saveAllIntersection() {
         displaceOver = 0;
         for(int i = 0; i < elipsoids.length; i++) {
             pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
             pt currPt = M.g(elipsoids[i].currentCorner);
+            pt nextPt = M.g(M.n(elipsoids[i].currentCorner));
+            float nextPillarRadius = M.pillarRadius[M.v(M.n(elipsoids[i].currentCorner))];
             float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
             float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
-            intersections[i] = elipsoids[i].intersect(prevPt,prevPillarRadius) && 
-                elipsoids[i].intersect(currPt,currentPillarRadius);
-            if(!intersections[i]) {
+            intersectionsPrev[i] = elipsoids[i].intersect(currPt,currentPillarRadius) && 
+                elipsoids[i].intersect(prevPt,prevPillarRadius);
+            intersectionsNext[i] = elipsoids[i].intersect(currPt,currentPillarRadius) && 
+                elipsoids[i].intersect(nextPt,nextPillarRadius);
+            if(!intersectionsPrev[i] && !intersectionsNext[i]) {
                 displaceOver++;
             }
         }
-    }*/
+    }
 
-    void horizontalDisplacement(float shrinkTo, int elipsoidsIndex) {
+    void horizontalDisplacement(float shrinkTo, int elipsoidsIndex, boolean[] intersections) {
         float newRadius = shrinkTo/2.0f;
-        int nextIndex = elipsoidsIndex+1;
-        if(nextIndex == elipsoids.length) {
-            nextIndex = 0;
-            for(int i = 0; i < elipsoids.length; i++) {
-                elipsoids[i].restoreSphere();
-            }
-        }
         Ellipsoid el = elipsoids[elipsoidsIndex];
         float oldVolume = elipsoids[elipsoidsIndex].getVolume();
         el.a = newRadius;
         el.b = newRadius;
         float newVolume = elipsoids[elipsoidsIndex].getVolume();
-        float volumeDelta = oldVolume - newVolume;
-
-        Ellipsoid elNext = elipsoids[nextIndex];
-        float nextVolume = elipsoids[nextIndex].getVolume() + volumeDelta;
-        float nextRadius = pow((3*nextVolume)/(4*PI),1.0/3.0);
-        elNext.a = nextRadius;
-        elNext.b = nextRadius;
-        elNext.c = nextRadius;
+        if(oldVolume  < newVolume) {
+            println("oldVolume: " + oldVolume);
+            println("newVolume: " + newVolume);
+        }
+        float volumeDelta = abs(oldVolume - newVolume);
+        float vPerNonIntersecting = volumeDelta/ displaceOver;
+        for(int i = 0; i < elipsoids.length; i++) {
+            if(!intersections[i]) {
+                Ellipsoid elNext = elipsoids[i];
+                float nextVolume = elipsoids[i].getVolume() + vPerNonIntersecting;
+                float nextRadius = pow((3*nextVolume)/(4*PI),1.0/3.0);
+                if(nextVolume < 0) {
+                    println("index["+ i +"]: " + util.PointStringify(cat.elipsoids[i].center));
+                    println("index["+ i +"].a: " + cat.elipsoids[i].a);
+                    println("index["+ i +"].b: " + cat.elipsoids[i].b);
+                    println("index["+ i +"].c: " + cat.elipsoids[i].c);
+                    println("index["+ i +"].currentCorner: " + cat.elipsoids[i].currentCorner);
+                    println("index["+ i +"] shrinkTo: " + shrinkTo);
+                    println("index["+ i +"] newRadius: " + newRadius);
+                    println("index["+ i +"] oldVolume: " + oldVolume);
+                    println("index["+ i +"] newVolume: " + newVolume);
+                    println("index["+ i +"] vPerNonIntersecting: " + vPerNonIntersecting);
+                    println("index["+ i +"] displaceOver: " + displaceOver);
+                    println("index["+ i +"] volumeDelta: " + volumeDelta);
+                    println("index["+ i +"] nextVolume: " + nextVolume);
+                    println("index["+ i +"] nextRadius: " + nextRadius);
+                }
+                elNext.a = nextRadius;
+                elNext.b = nextRadius;
+                elNext.c = nextRadius;
+            }
+                pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
+                pt currPt = M.g(elipsoids[i].currentCorner);
+                pt nextPt = M.g(M.n(elipsoids[i].currentCorner));
+                float nextPillarRadius = M.pillarRadius[M.v(M.n(elipsoids[i].currentCorner))];
+                float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
+                float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
+                intersectionsPrev[i] = elipsoids[i].intersect(currPt,currentPillarRadius) && 
+                elipsoids[i].intersect(prevPt,prevPillarRadius);
+                intersectionsNext[i] = elipsoids[i].intersect(currPt,currentPillarRadius) && 
+                elipsoids[i].intersect(nextPt,nextPillarRadius);
+        }
     }
 
     void translateOnPath() {
@@ -137,33 +180,36 @@ class Caterpillar {
             translate();
             translateOnPathVeritcal();
         } else {
-            if(resize) {
-                translateOnPathHorizontal();
-            } else {
-                translate();
-            }
-            resize=!resize;
+            translate();
+            translateOnPathHorizontal();
         }
     }
 
     void translateOnPathHorizontal() {
+        saveAllIntersection();
         for(int i = 0; i < elipsoids.length; i++) {
-            pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
-            pt currPt = M.g(elipsoids[i].currentCorner);
-            float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
-            float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
-
-            if(elipsoids[i].intersect(prevPt,prevPillarRadius) && 
-               elipsoids[i].intersect(currPt,currentPillarRadius)) {
-                float distance = util.distance2d(currPt,prevPt);
-                float shrinkTo = distance - (prevPillarRadius+ currentPillarRadius);
-                horizontalDisplacement(shrinkTo,i);
+            if(intersectionsPrev[i] || intersectionsNext[i]) {
+                pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
+                pt currPt = M.g(elipsoids[i].currentCorner);
+                pt nextPt = M.g(M.n(elipsoids[i].currentCorner));
+                float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
+                float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
+                float nextPillarRadius = M.pillarRadius[M.v(M.n(elipsoids[i].currentCorner))];
+                float distancePrev = util.distance2d(currPt,prevPt);
+                float distanceNext = util.distance2d(currPt,nextPt);
+                float prevShrinkTo = distancePrev - (prevPillarRadius + currentPillarRadius);
+                float nextShrinkTo = distanceNext - (nextPillarRadius + currentPillarRadius);
+                if(prevShrinkTo < nextShrinkTo) {
+                    horizontalDisplacement(prevShrinkTo, i, intersectionsPrev);
+                } else {
+                    horizontalDisplacement(nextShrinkTo, i, intersectionsNext);
+                }
             }
         }
 
-        /*boolean noIntersections = true;
+        boolean noIntersections = true;
         for(int i = 0; i < elipsoids.length; i++) {
-            if(intersections[i]) {
+            if(intersectionsPrev[i] || intersectionsNext[i]) {
                 noIntersections = false;
                 break;
             }
@@ -172,7 +218,7 @@ class Caterpillar {
             for(int i = 0; i < elipsoids.length; i++) {
                 elipsoids[i].restoreSphere();
             }
-        }*/
+        }
     }
 
     void translateOnPathVeritcal() {
