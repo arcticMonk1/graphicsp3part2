@@ -27,8 +27,10 @@ class Caterpillar {
         }
         if( abs(expectedVolume - currentVolume) > 1.0f) {
             //catShouldTranslateOnPath = false;
-            println("expectedVolume: " + expectedVolume);
-            println("currentVolume: " + currentVolume);
+            if(printOnce) {
+                println("expectedVolume: " + expectedVolume);
+                println("currentVolume: " + currentVolume);
+            }
         }
     }
     void generatePathFromCorner(int c) {
@@ -159,30 +161,71 @@ class Caterpillar {
         while(nextIndex != elipsoidsIndex) {
             float[] prevMaxDiameter = new float[1];
             float[] nextMaxDiameter = new float[1];
-            
             if(getIntersectionNext(nextIndex,nextMaxDiameter) || getIntersectionPrev(nextIndex,prevMaxDiameter)) {
                 nextIndex = (nextIndex + 1)  % elipsoids.length;
                 continue;
             }
-
             float maxradius = min(prevMaxDiameter[0],nextMaxDiameter[0])/2.0f;
             float maxVolume = (4.0f/3.0f)*PI*pow(maxradius,3);
             Ellipsoid elNext = elipsoids[nextIndex];
             float nextVolume = elNext.getVolume() + volumeDelta;
-            if(maxVolume > nextVolume) {
+            /*if (Float.isNaN(maxradius)) {
+                println("index["+ nextIndex +"].prevMaxDiameter: " + prevMaxDiameter[0]);
+                println("index["+ nextIndex +"].nextMaxDiameter: " + nextMaxDiameter[0]);
+                println("index["+ nextIndex +"]: " + util.PointStringify(elNext.center));
+                println("index["+ nextIndex +"].a: " + elNext.a);
+                println("index["+ nextIndex +"].b: " + elNext.b);
+                println("index["+ nextIndex +"].c: " + elNext.c);
+                println("index["+ nextIndex +"].currentCorner: " + elNext.currentCorner);
+                println("index["+ nextIndex +"] shrinkTo: " + shrinkTo);
+                println("index["+ nextIndex +"] newRadius: " + newRadius);
+                println("index["+ nextIndex +"] maxradius: " + maxradius);
+                println("index["+ nextIndex +"] maxVolume: " + maxVolume);
+                println("index["+ nextIndex +"] newVolume: " + newVolume);
+                println("index["+ nextIndex +"] volumeDelta: " + volumeDelta);
+                println("index["+ nextIndex +"] nextVolume: " + nextVolume);
+                //println("index["+ nextIndex +"] nextRadius: " + nextRadius);
+            }*/
+            if(maxVolume >= nextVolume) {
                 float nextRadius = pow((3.0f*nextVolume)/(4.0f*PI),1.0f/3.0f);
                 /*float testVolume = (4.0f/3.0f)*PI*pow(nextRadius,3);
                 if( abs(nextVolume - testVolume) > 1.0f) {
                     println("nextVolume: "+nextVolume);
                     println("testVolume: "+testVolume);
                 }*/
+                /*if (Float.isNaN(nextRadius)) {
+                    println("index["+ nextIndex +"].prevMaxDiameter: " + prevMaxDiameter[0]);
+                    println("index["+ nextIndex +"].nextMaxDiameter: " + nextMaxDiameter[0]);
+                    println("index["+ nextIndex +"]: " + util.PointStringify(elNext.center));
+                    println("index["+ nextIndex +"].a: " + elNext.a);
+                    println("index["+ nextIndex +"].b: " + elNext.b);
+                    println("index["+ nextIndex +"].c: " + elNext.c);
+                    println("index["+ nextIndex +"].currentCorner: " + elNext.currentCorner);
+                    println("index["+ nextIndex +"] shrinkTo: " + shrinkTo);
+                    println("index["+ nextIndex +"] newRadius: " + newRadius);
+                    println("index["+ nextIndex +"] maxradius: " + maxradius);
+                    println("index["+ nextIndex +"] maxVolume: " + maxVolume);
+                    println("index["+ nextIndex +"] newVolume: " + newVolume);
+                    println("index["+ nextIndex +"] volumeDelta: " + volumeDelta);
+                    println("index["+ nextIndex +"] nextVolume: " + nextVolume);
+                    println("index["+ nextIndex +"] nextRadius: " + nextRadius);
+                }*/
                 elNext.a = nextRadius;
                 elNext.b = nextRadius;
                 elNext.c = nextRadius;
+                break;
             } else {
+                //println("before index["+ nextIndex +"].a: " + elNext.a);
+                //println("before index["+ nextIndex +"].b: " + elNext.b);
+                //println("before index["+ nextIndex +"].c: " + elNext.c);
                 elNext.a = maxradius;
                 elNext.b = maxradius;
                 elNext.c = maxradius;
+                //println("after index["+ nextIndex +"].a: " + elNext.a);
+                //println("after index["+ nextIndex +"].b: " + elNext.b);
+                //println("after index["+ nextIndex +"].c: " + elNext.c);
+                //println("index["+ nextIndex +"] maxVolume: " + maxVolume);
+                //println("index["+ nextIndex +"] nextVolume: " + nextVolume);
                 volumeDelta = nextVolume - maxVolume;
             }
             nextIndex = (nextIndex + 1)  % elipsoids.length;
