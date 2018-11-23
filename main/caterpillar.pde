@@ -1,9 +1,6 @@
 class Caterpillar {
     int pathResolution;
     Ellipsoid[] elipsoids;
-    boolean[] intersectionsPrev;
-    boolean[] intersectionsNext;
-    int displaceOver = 0;
     int rootPtIndices[];
     int currPtIndex = 0;
     float currentRadius = 35.0f;
@@ -14,8 +11,6 @@ class Caterpillar {
     ArrayList<pt> midpoints;
     Caterpillar(int length, int pathResolution) {
         elipsoids = new Ellipsoid[length];
-        intersectionsPrev = new boolean[length];
-        intersectionsNext = new boolean[length];
         rootPtIndices = new int[length];
         this.pathResolution = pathResolution;
         midpoints = new ArrayList<pt>();
@@ -115,27 +110,43 @@ class Caterpillar {
             }
         }
     }
-
-    void saveAllIntersection() {
-        displaceOver = 0;
-        for(int i = 0; i < elipsoids.length; i++) {
-            pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
-            pt currPt = M.g(elipsoids[i].currentCorner);
-            pt nextPt = M.g(M.n(elipsoids[i].currentCorner));
-            float nextPillarRadius = M.pillarRadius[M.v(M.n(elipsoids[i].currentCorner))];
-            float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
-            float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
-            intersectionsPrev[i] = elipsoids[i].intersect(currPt,currentPillarRadius) && 
-                elipsoids[i].intersect(prevPt,prevPillarRadius);
-            intersectionsNext[i] = elipsoids[i].intersect(currPt,currentPillarRadius) && 
-                elipsoids[i].intersect(nextPt,nextPillarRadius);
-            if(!intersectionsPrev[i] && !intersectionsNext[i]) {
-                displaceOver++;
-            }
-        }
+    boolean getIntersectionPrev(int i) {
+        return getIntersectionPrev(i,null);
     }
 
-    void horizontalDisplacement(float shrinkTo, int elipsoidsIndex, boolean[] intersections) {
+    boolean getIntersectionNext(int i) {
+        return getIntersectionNext(i,null);
+    }
+
+    boolean getIntersectionPrev(int i, float[] outDistance) {
+        pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
+        pt currPt = M.g(elipsoids[i].currentCorner);
+        float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
+        float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
+        boolean intersect =  elipsoids[i].intersect(currPt,currentPillarRadius) && 
+                elipsoids[i].intersect(prevPt,prevPillarRadius);
+        if(outDistance !=null) {
+            float distancePrev = util.distance2d(currPt, prevPt);
+            outDistance[0] = distancePrev - (prevPillarRadius + currentPillarRadius);
+        }
+        return intersect;
+    }
+
+    boolean getIntersectionNext(int i, float[] outDistance) {
+        float nextPillarRadius = M.pillarRadius[M.v(M.n(elipsoids[i].currentCorner))];
+        float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
+        pt currPt = M.g(elipsoids[i].currentCorner);
+        pt nextPt = M.g(M.n(elipsoids[i].currentCorner));
+        boolean intersect = elipsoids[i].intersect(currPt,currentPillarRadius) && 
+               elipsoids[i].intersect(nextPt,nextPillarRadius);
+        if(outDistance !=null) {
+            float distanceNext = util.distance2d(currPt, nextPt);
+            outDistance[0] = distanceNext - (nextPillarRadius + currentPillarRadius);
+        }
+        return intersect;
+    }
+
+    void horizontalDisplacement(float shrinkTo, int elipsoidsIndex) {
         float newRadius = shrinkTo/2.0f;
         Ellipsoid el = elipsoids[elipsoidsIndex];
         float oldVolume = el.getVolume();
@@ -143,19 +154,39 @@ class Caterpillar {
         el.b = newRadius;
         float newVolume = el.getVolume();
         float volumeDelta = abs(oldVolume - newVolume);
-        //float vPerNonIntersecting = volumeDelta/ displaceOver;
         int nextIndex = (elipsoidsIndex +1) % elipsoids.length;
-        float nextVolume = elipsoids[nextIndex].getVolume() + volumeDelta;
-        float nextRadius = pow((3.0f*nextVolume)/(4.0f*PI),1.0f/3.0f);
-        float testVolume = (4.0f/3.0f)*PI*pow(nextRadius,3);
-        if( abs(nextVolume - testVolume) > 1.0f) {
-            println("nextVolume: "+nextVolume);
-            println("testVolume: "+testVolume);
+
+        while(nextIndex != elipsoidsIndex) {
+            float[] prevMaxDiameter = new float[1];
+            float[] nextMaxDiameter = new float[1];
+            
+            if(getIntersectionNext(nextIndex,nextMaxDiameter) || getIntersectionPrev(nextIndex,prevMaxDiameter)) {
+                nextIndex = (nextIndex + 1)  % elipsoids.length;
+                continue;
+            }
+
+            float maxradius = min(prevMaxDiameter[0],nextMaxDiameter[0])/2.0f;
+            float maxVolume = (4.0f/3.0f)*PI*pow(maxradius,3);
+            Ellipsoid elNext = elipsoids[nextIndex];
+            float nextVolume = elNext.getVolume() + volumeDelta;
+            if(maxVolume > nextVolume) {
+                float nextRadius = pow((3.0f*nextVolume)/(4.0f*PI),1.0f/3.0f);
+                /*float testVolume = (4.0f/3.0f)*PI*pow(nextRadius,3);
+                if( abs(nextVolume - testVolume) > 1.0f) {
+                    println("nextVolume: "+nextVolume);
+                    println("testVolume: "+testVolume);
+                }*/
+                elNext.a = nextRadius;
+                elNext.b = nextRadius;
+                elNext.c = nextRadius;
+            } else {
+                elNext.a = maxradius;
+                elNext.b = maxradius;
+                elNext.c = maxradius;
+                volumeDelta = nextVolume - maxVolume;
+            }
+            nextIndex = (nextIndex + 1)  % elipsoids.length;
         }
-        Ellipsoid elNext = elipsoids[nextIndex];
-        elNext.a = nextRadius;
-        elNext.b = nextRadius;
-        elNext.c = nextRadius;
     }
 
     void translateOnPath() {
@@ -169,43 +200,18 @@ class Caterpillar {
     }
 
     void translateOnPathHorizontal() {
-        saveAllIntersection();
         for(int i = 0; i < elipsoids.length; i++) {
-            if(intersectionsPrev[i] || intersectionsNext[i]) {
-                pt prevPt = M.g(M.p(elipsoids[i].currentCorner));
-                pt currPt = M.g(elipsoids[i].currentCorner);
-                pt nextPt = M.g(M.n(elipsoids[i].currentCorner));
-                float prevPillarRadius = M.pillarRadius[M.v(M.p(elipsoids[i].currentCorner))];
-                float currentPillarRadius = M.pillarRadius[M.v(elipsoids[i].currentCorner)];
-                float nextPillarRadius = M.pillarRadius[M.v(M.n(elipsoids[i].currentCorner))];
-                float distancePrev = util.distance2d(currPt, prevPt);
-                float distanceNext = util.distance2d(currPt, nextPt);
-                float prevShrinkTo = distancePrev - (prevPillarRadius + currentPillarRadius);
-                float nextShrinkTo = distanceNext - (nextPillarRadius + currentPillarRadius);
-                if(prevShrinkTo < nextShrinkTo) {
-                    horizontalDisplacement(prevShrinkTo, i, intersectionsPrev);
-                } else {
-                    horizontalDisplacement(nextShrinkTo, i, intersectionsNext);
-                }
-                int nextI = (i+1)%elipsoids.length;
-                
-                intersectionsPrev[nextI] = elipsoids[nextI].intersect(currPt,currentPillarRadius) && 
-                elipsoids[i].intersect(prevPt,prevPillarRadius);
-                intersectionsNext[nextI] = elipsoids[nextI].intersect(currPt,currentPillarRadius) && 
-                elipsoids[nextI].intersect(nextPt,nextPillarRadius);
-                /*if(intersectionsPrev[nextI] || intersectionsNext[nextI]) {
-                    Ellipsoid elNext = elipsoids[nextI];
-                    float cubeR = pow(elNext.c,3);
-                    elNext.c = cubeR/elNext.c;
-                    elNext.b = sqrt(elNext.c);
-                    elNext.a = elNext.b;
-                }*/
+            float[] prevShrinkTo = new float[1];
+            float[] nextShrinkTo = new float[1];
+            if(getIntersectionNext(i, nextShrinkTo) || getIntersectionPrev(i, prevShrinkTo)) {
+                float maxDiameter = min(prevShrinkTo[0], nextShrinkTo[0]);
+                horizontalDisplacement(maxDiameter, i);
             }
         }
 
         boolean noIntersections = true;
         for(int i = 0; i < elipsoids.length; i++) {
-            if(intersectionsPrev[i] || intersectionsNext[i]) {
+            if(getIntersectionNext(i) || getIntersectionPrev(i)) {
                 noIntersections = false;
                 break;
             }
