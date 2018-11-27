@@ -206,6 +206,7 @@ void draw() {
       translate(0,0,6); noFill(); 
       M.showPillars();
       cat.generatePathFromCorner();
+      //cat.generateLongPath();
       cat.draw();
       cat.checkVolume();
       if(catShouldTranslateOnPath) {
@@ -213,7 +214,7 @@ void draw() {
         printOnce = true;
       } else {
         if(printOnce) {
-          for(int i = 0; i < cat.elipsoids.length; i++) {
+          /*for(int i = 0; i < cat.elipsoids.length; i++) {
             println("index["+ i +"]: " + util.PointStringify(cat.elipsoids[i].center));
             println("index["+ i +"].a: " + cat.elipsoids[i].a);
             println("index["+ i +"].b: " + cat.elipsoids[i].b);
@@ -232,7 +233,7 @@ void draw() {
             println("index["+ i +"] newRadius: " + newRadius);
             println("index["+ i +"] oldVolume: " + oldVolume);
 
-          }
+          }*/
           printOnce = false;
         }
       }

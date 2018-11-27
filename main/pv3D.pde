@@ -47,6 +47,7 @@ class vec
 class pt 
    { 
      float x=0,y=0,z=0; 
+     int index=-1;
    pt () {}; 
    pt (float px, float py) {x = px; y = py;};
    pt (float px, float py, float pz) {x = px; y = py; z = pz; };
@@ -74,7 +75,19 @@ class pt
    pt div(float f) {x/=f; y/=f; z/=f; return this;};
    pt div(int f) {x/=f; y/=f; z/=f; return this;};
    pt translateTowards(float s, pt P) {x+=s*(P.x-x);  y+=s*(P.y-y); z+=s*(P.z-z);  return this;};  // transalte by ratio s towards P
-   }
+
+  public int hashCode() {
+        return util.PointStringify(this).hashCode();
+    }
+  public boolean equals(pt p){
+        if(this == p) {
+            return true;
+        } else {
+          return this.x == p.x && this.y == p.y;
+        }
+  }
+
+}
    
 // =====  vector functions
 vec V() {return new vec(); };                                                                          // make vector (x,y,z)
