@@ -44,7 +44,9 @@ void keyPressed()
     if(key=='g') P.loadPts("data/pts"); 
     if(key=='h') ; // hold do change column height with mouse
     if(key=='i') ; // insert additional vertex
-    if(key=='j') ;
+    if(key=='j') {
+      cat.pathGen = false;
+    }
     if(key=='k') ; 
     if(key=='l') M.left();
     if(key=='m') {M.reset(); M.loadVertices(R.G,R.nv); M.triangulate(); M.computeO();}
