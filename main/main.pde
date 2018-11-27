@@ -208,55 +208,23 @@ void draw() {
       cat.generatePathFromCorner();
       //cat.generateLongPath();
       cat.draw();
-      cat.checkVolume();
+      //cat.checkVolume();
       if(catShouldTranslateOnPath) {
         cat.translateOnPath();
-        printOnce = true;
-      } else {
-        if(printOnce) {
-          /*for(int i = 0; i < cat.elipsoids.length; i++) {
-            println("index["+ i +"]: " + util.PointStringify(cat.elipsoids[i].center));
-            println("index["+ i +"].a: " + cat.elipsoids[i].a);
-            println("index["+ i +"].b: " + cat.elipsoids[i].b);
-            println("index["+ i +"].c: " + cat.elipsoids[i].c);
-            println("index["+ i +"].currentCorner: " + cat.elipsoids[i].currentCorner);
-            pt prevPt = M.g(M.p(cat.elipsoids[i].currentCorner));
-            pt currPt = M.g(cat.elipsoids[i].currentCorner);
-            float prevPillarRadius = M.pillarRadius[M.v(M.p(cat.elipsoids[i].currentCorner))];
-            float currentPillarRadius = M.pillarRadius[M.v(cat.elipsoids[i].currentCorner)];
-            float distance = util.distance2d(currPt,prevPt);
-            float shrinkTo = distance - (prevPillarRadius+ currentPillarRadius);
-            float newRadius = shrinkTo/2.0f;
-            float oldVolume = cat.elipsoids[i].getVolume();
-            println("index["+ i +"] distance: " + distance);
-            println("index["+ i +"] shrinkTo: " + shrinkTo);
-            println("index["+ i +"] newRadius: " + newRadius);
-            println("index["+ i +"] oldVolume: " + oldVolume);
-
-          }*/
-          printOnce = false;
-        }
       }
       popMatrix();
     }
     
   if(step8)
     {
-      float oldVolume = (4.0f/3.0f)*PI*pow(4,3);
-      float newVolume = (4.0f/3.0f)*PI*(2*2*4);
-      float volumeDelta = abs(oldVolume - newVolume);
-      float nextVolume = oldVolume + volumeDelta;
-      float nextRadius = pow((3.0f*nextVolume)/(4.0f*PI),1.0/3.0);
-      float testVolume = (4.0f/3.0f)*PI*pow(nextRadius,3);
-      println("oldVolume: "+oldVolume);
-      println("newVolume: "+newVolume);
-      println("volumeDelta: "+volumeDelta);
-      println("nextVolume: "+nextVolume);
-      println("nextRadius: "+nextRadius);
-      println("testVolume: "+testVolume);
-      println("2*oldVolume ==newVolume+nextVolume: "+ ((2*oldVolume) == (newVolume+nextVolume)));
-      println("testVolume ==nextVolume: "+(abs(testVolume -nextVolume) < 1.0));
-      step8 = false;
+      //cat.buildAdjList();
+      pushMatrix(); 
+      translate(0,0,8); 
+      noFill();
+      M.showCats();
+      //stroke(blue); 
+      //cat.drawDfs();
+      popMatrix();
     }
     
   if(step9)

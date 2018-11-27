@@ -153,6 +153,7 @@ void mouseMoved()
   
 void mouseDragged() 
   {
+    //cat.pathGen = false;
   if (!keyPressed) R.setPickedTo(Of); 
 //  if (!keyPressed) {Of.add(ToIJ(V((float)(mouseX-pmouseX),(float)(mouseY-pmouseY),0))); }
   if (keyPressed && key==CODED && keyCode==SHIFT) {Of.add(ToK(V((float)(mouseX-pmouseX),(float)(mouseY-pmouseY),0)));};

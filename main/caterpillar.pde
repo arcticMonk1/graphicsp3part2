@@ -1,7 +1,7 @@
 class Pair {
-    pt key;
-    ArrayList<pt> value;
-    Pair(pt key, ArrayList<pt> value) {
+    int key;
+    ArrayList<Integer> value;
+    Pair(int key, ArrayList<Integer> value) {
         this.key = key;
         this.value = value;
     } 
@@ -18,176 +18,87 @@ class Caterpillar {
     boolean shouldDisplaceVertically = true;
     boolean pathGen = false;
     ArrayList<pt> midpoints;
-    HashMap<Integer,ArrayList<Integer>> pointMap;
-    ArrayList<pt> genPoints;
-    
-
+    color clr = blue;
+    HashMap<Integer,ArrayList<Integer>> graph;
     Caterpillar(int length, int pathResolution) {
         elipsoids = new Ellipsoid[length];
         rootPtIndices = new int[length];
         this.pathResolution = pathResolution;
         midpoints = new ArrayList<pt>();
-        pointMap = new HashMap<Integer, ArrayList<Integer>>();
-        genPoints = new ArrayList<pt>();
+        graph = new HashMap<Integer,ArrayList<Integer>>();
     }
-    void addPoints(pt a) {
-        if(a.index == -1) {
-            genPoints.add(a);
-            a.index = genPoints.size()-1;
-        }
-    }
-    void addNeighbors(pt a, pt b) {
-        ArrayList<Integer> neighbors = pointMap.get(a.index);
-        if(neighbors == null) {
-            neighbors = new ArrayList<Integer>();
-            addPoints(a);
-            addPoints(b);
-            neighbors.add(b.index);
-            pointMap.put(a.index, neighbors);
-        } else {
-            addPoints(b);
-            neighbors.add(b.index);
-        }
-    }
-
-    pt genVoronoiGraph() {
-      pt start = null;
-      for (int c=0; c<M.nc; c++) {
-        if(M.isInterior[M.V[c]]) {
-          int root = M.s(M.u(c));
-          int curr = root;
-          do {
-            pt am = util.midpoint(M.g(curr), M.g(M.p(curr)));
-            pt bm = util.midpoint(M.g(curr), M.g(M.n(curr)));
-            if(pointMap.size() == 0) {
-                start = am;
+    void buildAdjList() {
+        for (int c=0; c<M.nc; c++) {
+            if(M.isInterior[M.V[c]]) {
+              int curr = c;
+              ArrayList<Integer> neighbors = new ArrayList<Integer>();
+              do {
+                neighbors.add(M.V[M.p(curr)]);
+                curr = M.s(curr);
+              } while(curr != c);
+              graph.put(M.V[c],neighbors);
             }
-            addNeighbors(am,bm);
-            curr = M.s(curr);
-          } while(curr != root && curr != c);
         }
-      }
-      return start;
+        for (HashMap.Entry<Integer, ArrayList<Integer>> item : graph.entrySet()) {
+            println("vertex["+item.getKey()+"] neighbors="+item.getValue().size());
+        }
     }
 
-    void topologicalSort(pt v, boolean visited[], 
-                                ArrayList<pt> Stack) { 
-        // Mark the current node as visited 
-        visited[v.index] = true; 
-        ArrayList<Integer> neighbors = pointMap.get(v.index);
-        for (int i = 0; i < neighbors.size(); i++) { 
-            pt node = genPoints.get(neighbors.get(i)); 
-            if (!visited[node.index]) 
-                topologicalSort(node, visited, Stack); 
-        } 
-        Stack.add(v); 
+    void drawDfs() {
+        int startV = 0;
+        for (int v = 1; v < M.nv; v++) {
+            ArrayList<Integer> path = dfs(startV, v);
+            //String strPath = "[ ";
+            for(int i = 0; i < path.size(); i++) {
+                //strPath+= ""+path.get(i)+", ";
+                if(i < path.size()-1) {
+                    //show(M.G[path.get(i)],100);
+                    show(M.G[path.get(i)],M.G[path.get(i+1)]);
+                }
+            }
+            //strPath +=" ]";
+            //println("v["+v +"]->v["+(v+1)+"] = "+strPath);
+        }
     }
-
-    ArrayList<pt> dfs(pt A, pt B) {
+    ArrayList<Integer> dfs(int A, int B) {
         ArrayList<Pair> Stack = new ArrayList<Pair>();
-        boolean[] visited = new boolean[pointMap.size()];
-        for (int i = 0; i < visited.length; i++) {
-            visited[i] = false;
+        boolean[] visited = new boolean[M.nv];
+        for (int v = 0; v < visited.length; v++) {
+            if(M.isInterior[v]) {
+                visited[v] = false;
+            } else {
+                //ignore exterior
+                visited[v] = true;
+            }
         }
-        ArrayList<pt> p = new ArrayList<pt>();
+        ArrayList<Integer> p = new ArrayList<Integer>();
         p.add(A);
         Stack.add(new Pair(A,p));
-        
-        while(!Stack.isEmpty())
-        {
-            int lastIndex = Stack.size()-1;
-            Pair top =  Stack.get(lastIndex);
-            ArrayList<pt> path = top.value;
-            Stack.remove(lastIndex);
-            if(visited[top.key.index] == false)
-            {
-                visited[top.key.index] = true;
-                ArrayList<Integer> neighbors = pointMap.get(top.key); 
-                for(int i = 0; i < neighbors.size(); i++) {
-                    pt w = genPoints.get(neighbors.get(i));
-                    path.add(w);
-                    if(w == B)
-                    {
-                        return path;
-                    }
-                    ArrayList<pt> cpyPath = new ArrayList<pt>(path);
-                    cpyPath.add(w);
-                    Pair entry = new Pair(w,cpyPath);
-                    Stack.add(entry);
-                }
-            }
-        }
-        return new ArrayList<pt>();
-    }
-
-    pt longestPath(pt start) {
-        boolean[] visited = new boolean[pointMap.size()];
-        ArrayList<pt> Stack = new ArrayList<pt>(); 
-        int dist[] = new int[visited.length]; 
-        for (int i = 0; i < visited.length; i++) {
-            visited[i] = false;
-        }
-        for (HashMap.Entry<Integer, ArrayList<Integer>> item : pointMap.entrySet()) {
-            pt key = genPoints.get(item.getKey());
-            if (visited[key.index] == false) {
-                topologicalSort(key, visited, Stack);
-            }
-        }
-        for (int i = 0; i < visited.length; i++) {
-            dist[i] = Integer.MAX_VALUE;
-        }
-        dist[start.index] = 0; 
-
         while(!Stack.isEmpty()) {
             int lastIndex = Stack.size()-1;
-            pt u =  Stack.get(lastIndex);
+            Pair top =  Stack.get(lastIndex);
+            ArrayList<Integer> path = top.value;
             Stack.remove(lastIndex);
-            if (dist[u.index] != Integer.MAX_VALUE) {
-                ArrayList<Integer> neighbors = pointMap.get(u); 
-                for (int i = 0; i < neighbors.size(); i++) {
-                    pt neighborPt = genPoints.get(neighbors.get(i));
-                    if (dist[neighborPt.index] < dist[u.index]) { 
-                        dist[neighborPt.index] = dist[u.index]; 
+            if(visited[top.key] == false) {
+                visited[top.key] = true;
+                ArrayList<Integer> neighbors = graph.get(top.key); 
+                for(int i = 0; i < neighbors.size(); i++) {
+                    int w = neighbors.get(i);
+                    if(M.isInterior[w]) {
+                        path.add(w);
+                        if(w == B) {
+                            return path;
+                        }
+                        ArrayList<Integer> cpyPath = new ArrayList<Integer>(path);
+                        Pair entry = new Pair(w, cpyPath);
+                        Stack.add(entry);
                     }
                 }
             }
         }
-        int max = -1;
-        int maxIndex = 0;
-        for(int i = 0; i < dist.length; i++) {
-            if(dist[i] != Integer.MAX_VALUE && dist[i] > max) {
-                max = dist[i];
-                maxIndex = i;
-            }
-        }
-        return genPoints.get(maxIndex);
+        return new ArrayList<Integer>();
     }
-    void genVoronoiGraphDiagnostics() {
-        for (HashMap.Entry<Integer, ArrayList<Integer>> item : pointMap.entrySet()) {
-            println(util.PointStringify(genPoints.get(item.getKey())) + 
-                    " : " + item.getValue().size());
-        }
-    }
-    void generateLongPath() {
-        if(pathGen) {
-            return;
-        }
-        pt start = genVoronoiGraph();
-        genVoronoiGraphDiagnostics();
-        pt end = longestPath(start);
-        ArrayList<pt> startPath = dfs(start,end);
-        ArrayList<pt> endPath = dfs(end, start);
-        for(int i = 0; i < startPath.size()-3; i++) {
-            boolean intitStart = (i == 0);
-            generatePath(startPath.get(i),startPath.get(i+1),
-                startPath.get(i+2), intitStart);
-        }
-         for(int i = 0; i < endPath.size()-3; i++) {
-             generatePath(startPath.get(i),startPath.get(i+1),
-                startPath.get(i+2),false);
-         }
-         pathGen = true;
-    }
+
     void generatePathFromCorner() {
         generatePathFromCorner(0);
     }
@@ -219,6 +130,7 @@ class Caterpillar {
         if(pathGen) {
             return;
         }
+        println("this is strange");
         int prev = M.u(c);
         int root = M.s(prev);
         int curr = c;
@@ -260,7 +172,7 @@ class Caterpillar {
                     currentRadius = 4.0f*(jMap - jMap2);
                     println("cat radius:" + currentRadius);
                 }*/
-                elipsoids[i] = new Ellipsoid(currentPath[jMap],currentRadius,blue,16);
+                elipsoids[i] = new Ellipsoid(currentPath[jMap],currentRadius,clr,16);
                 rootPtIndices[i] = jMap;
             }
             currPtIndex = rootPtIndices[0];
@@ -291,6 +203,7 @@ class Caterpillar {
             }
         }
     }
+    
     boolean getIntersectionPrev(int i) {
         return getIntersectionPrev(i,null);
     }
@@ -340,41 +253,25 @@ class Caterpillar {
         float oldVolume = el.getVolume();
         el.a = newRadius;
         el.b = newRadius;
-        /*float newC = getC(oldVolume, newRadius);
-        if(newC < maxHeight) {
-            el.c = newC;
-        } else {
-            el.c = maxHeight;
-        }*/
         float newVolume = el.getVolume();
         float volumeDelta = max(oldVolume - newVolume,0);
         return volumeDelta;
     }
+    
     float getC(float volume, float radius) {
         return (3.0f*volume)/(4.0f*PI*pow(radius,2));
     }
+
     void horizontalDisplacement(float maxDiameter, int i) {
         float newRadius = maxDiameter/2.0f;
-        
-        //DEBUG block delete
-        if(maxDiameter == 0) {
-            println("elipsoids["+ i +"].maxDiameter: " + maxDiameter);
-            println("elipsoids["+ i +"].newRadius: " + newRadius);
-            catShouldTranslateOnPath = false;
-            return;
-        }
-        //DEBUG block delete
-
         Ellipsoid el = elipsoids[i];
         if(newRadius > el.a) {
             return;
         }
-
         float volumeDelta = getDeltaVolume(el,newRadius);
         if(volumeDelta == 0) {
             return;
         }
-
         int nextIndex = (i + 1) % elipsoids.length;
         Ellipsoid elNext = elipsoids[nextIndex];
         float nextVolume = elNext.getVolume() + volumeDelta;
