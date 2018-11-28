@@ -44,7 +44,9 @@ void keyPressed()
     if(key=='g') P.loadPts("data/pts"); 
     if(key=='h') ; // hold do change column height with mouse
     if(key=='i') ; // insert additional vertex
-    if(key=='j') ;
+    if(key=='j') {
+      cat.pathGen = false;
+    }
     if(key=='k') ; 
     if(key=='l') M.left();
     if(key=='m') {M.reset(); M.loadVertices(R.G,R.nv); M.triangulate(); M.computeO();}
@@ -56,11 +58,15 @@ void keyPressed()
     if(key=='s') M.swing();
     if(key=='t') ; 
     if(key=='u') M.unswing();
-    if(key=='v') ; 
+    if(key=='v') {
+      cat.shouldDisplaceVertically = !cat.shouldDisplaceVertically;
+    }
     if(key=='w') P.savePts("data/pts");   // save vertices to pts 
     if(key=='x') ; // hold to move selected vertex with mouse
-    if(key=='y') ;
-    if(key=='z') ; 
+    if(key=='y')  {
+      catShouldTranslateOnPath = !catShouldTranslateOnPath;
+    }
+    if(key=='z') {M.genPillars= true;}
 
     if(key=='A') showArcs=!showArcs;
     if(key=='B') showBalls=!showBalls ;  
@@ -149,6 +155,7 @@ void mouseMoved()
   
 void mouseDragged() 
   {
+    //cat.pathGen = false;
   if (!keyPressed) R.setPickedTo(Of); 
 //  if (!keyPressed) {Of.add(ToIJ(V((float)(mouseX-pmouseX),(float)(mouseY-pmouseY),0))); }
   if (keyPressed && key==CODED && keyCode==SHIFT) {Of.add(ToK(V((float)(mouseX-pmouseX),(float)(mouseY-pmouseY),0)));};

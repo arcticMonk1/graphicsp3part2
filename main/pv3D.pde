@@ -74,7 +74,7 @@ class pt
    pt div(float f) {x/=f; y/=f; z/=f; return this;};
    pt div(int f) {x/=f; y/=f; z/=f; return this;};
    pt translateTowards(float s, pt P) {x+=s*(P.x-x);  y+=s*(P.y-y); z+=s*(P.z-z);  return this;};  // transalte by ratio s towards P
-   }
+}
    
 // =====  vector functions
 vec V() {return new vec(); };                                                                          // make vector (x,y,z)

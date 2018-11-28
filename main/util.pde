@@ -1,7 +1,7 @@
 class Util {
  
   String PointStringify(pt point) {
-        return "{x: "+point.x + " y: "+point.y + " z: " + point.z + "} ";
+        return "{x: " + point.x + " y: " + point.y + "} ";
   }
 
   pt circumcenter(pt A, pt B, pt C) {

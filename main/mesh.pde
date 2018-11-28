@@ -1,13 +1,14 @@
 // TRIANGLE MESH
 class MESH {
+    Caterpillar[] cats;
     // VERTICES
     int nv=0, maxnv = 1000;  
-    pt[] G = new pt [maxnv];                        
+    pt[] G = new pt [maxnv];
     // TRIANGLES 
-    int nt = 0, maxnt = maxnv*2;                           
-    boolean[] isInterior = new boolean[maxnv];                                      
+    int nt = 0, maxnt = maxnv*2;
+    boolean[] isInterior = new boolean[maxnv];
     // CORNERS 
-    int c=0;    // current corner                                                              
+    int c=0;    // current corner
     int nc = 0; 
     int[] V = new int [3*maxnt];   
     int[] O = new int [3*maxnt];  
@@ -37,7 +38,8 @@ class MESH {
 
   boolean nb(int c) {return(O[c]!=c);};  // not a border corner
   boolean bord(int c) {return(O[c]==c);};  // not a border corner
-
+  boolean genPillars = true;
+  float[] pillarRadius;
   pt cg(int c) {return P(0.6,g(c),0.2,g(p(c)),0.2,g(n(c)));}   // computes offset location of point at corner c
 
   // CORNER ACTIONS CURRENT CORNER c
@@ -313,6 +315,48 @@ void showVoronoiEdges() // draws Voronoi edges on the boundary of Voroni cells o
     }
   }
 }
+
+void showPillars() {
+  if(genPillars) {
+    pillarRadius = new float[nv];
+    for( int v = 0; v < nv; v++) {
+      pillarRadius[v] = 110+random(70);
+    }
+    genPillars = false;
+  }
+   for (int v=0; v<nv; v++) {
+     if(isInterior[v]) {
+        fill(magenta,150);
+        pillar(G[v],90,pillarRadius[v]);
+      }
+  }
+}
+
+void showCats()  {
+  step7=false;
+  showPillars();
+  if(cats == null) {
+    cats = new Caterpillar[nv];
+    for (int v=0; v<nv; v++) {
+      cats[v] = new Caterpillar(7,4);
+      if( (v/(double) nv) > .5) {
+        cats[v].shouldDisplaceVertically = false;
+        cats[v].clr = red;
+      }
+    }
+  }
+  for (int c=0; c<nc; c++) {
+    int v = V[c];
+    if(isInterior[v]) {
+      cats[v].generatePathFromCorner(c);
+      cats[v].draw();
+      if(catShouldTranslateOnPath) {
+        cats[v].translateOnPath();
+      }
+    }
+  }
+
+  }
 
 void showArcs() // draws arcs of quadratic B-spline of Voronoi boundary loops of interior vertices
     { 

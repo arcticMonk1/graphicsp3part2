@@ -37,6 +37,10 @@ Boolean
   String[] smoothNames = {"CENTROID","AVGNEIGH","AVGNEIGHCENTROIDS", "AVGWEIGHTED"};
   String smoothName = smoothNames[SMOOTHTYPE];
 
+  float totalAnimationTime=9; // at 1 sec for 30 frames, this makes the total animation last 90 frames
+  float time=0;
+  boolean printOnce = false;
+
 float 
   da = TWO_PI/32, // facet count for fans, cones, caplets
   t=0, 
@@ -56,6 +60,8 @@ int
   numberOfBorderEdges=0,
   tetCount=0;
  
+ Caterpillar cat;
+ boolean catShouldTranslateOnPath = true;
 
 pts P = new pts(); // polyloop in 3D
 pts Q = new pts(); // second polyloop in 3D
@@ -76,6 +82,7 @@ void setup() {
   //frameRate(30);
   sphereDetail(12);
   R=P; S=Q;
+  cat = new Caterpillar(7,4);
   println(); println("_______ _______ _______ _______");
   //println("triangle area: " + util.triangleArea(new pt(0,0),new pt(1,1),new pt(0,2)));
   //println("triangle area: " + util.triangleArea(new pt(0,0),new pt(5,4),new pt(8,2)));
@@ -89,7 +96,12 @@ void draw() {
   if(showFloor) showFloor(h); // draws dance floor as yellow mat
   doPick(); // sets Of and axes for 3D GUI (see pick Tab)
   R.SETppToIDofVertexWithClosestScreenProjectionTo(Mouse()); // for picking (does not set P.pv)
-    
+  
+  time+=1./(totalAnimationTime*frameRate);
+      if (time > 1.0) {
+        time = 0.0;
+      }
+
   if(showBalls) 
       {
       fill(red); R.drawBalls(rb);
@@ -113,7 +125,11 @@ void draw() {
       show( util.midpoint(R.G[0], R.G[2]), 25.0);
       show( util.midpoint(R.G[1], R.G[2]), 25.0);*/
     pushMatrix(); 
-    translate(0,0,4); fill(cyan); stroke(yellow);
+    translate(0,0,4); 
+    //Ellipsoid e = new Ellipsoid(R.G[0],25.0f,green,16);
+    //e.draw();
+    fill(cyan); stroke(yellow);
+
     if(live) 
       {
       M.reset(); 
@@ -185,21 +201,30 @@ void draw() {
 
   if(step7)
     {
-    fill(blue); show(R.G[0],1.1*rb);
-    fill(orange); beam(P.G[0],P.G[1],rt);
-    fill(grey); beam(R.G[0],R.G[1],1.1*rt); beam(R.G[1],R.G[2],1.1*rt); beam(R.G[2],R.G[0],1.1*rt);
-    fill(red); show(CircumCenter(R.G[0],R.G[1],R.G[2]),15);
-    fill(magenta,200); show(CircumCenter(R.G[0],R.G[1],R.G[2]),circumRadius(R.G[0],R.G[1],R.G[2]));
+      showEdges = false;
+      pushMatrix(); 
+      translate(0,0,6); noFill(); 
+      M.showPillars();
+      cat.generatePathFromCorner();
+      //cat.generateLongPath();
+      cat.draw();
+      //cat.checkVolume();
+      if(catShouldTranslateOnPath) {
+        cat.translateOnPath();
+      }
+      popMatrix();
     }
     
   if(step8)
     {
-    CIRCLE C1 = Circ(R.G[0],rb), C2 = Circ(R.G[1],rb*1.2),  C3 = Circ(R.G[2],rb*1.8);
-    CIRCLE C = Apollonius(C1,C2,C3,-1,-1,-1);
-    fill(red,150); C1.showAsSphere();
-    fill(green,150); C2.showAsSphere();
-    fill(blue,150); C3.showAsSphere();
-    fill(yellow,200); C.showAsSphere();
+      //cat.buildAdjList();
+      pushMatrix(); 
+      translate(0,0,8); 
+      noFill();
+      M.showCats();
+      //stroke(blue); 
+      //cat.drawDfs();
+      popMatrix();
     }
     
   if(step9)
